@@ -1,0 +1,9 @@
+name: gametest
+description: A sample web application
+dependencies:
+  browser: any
+  game_loop:
+    git: https://github.com/johnmccutchan/game_loop.git
+  three:
+    git: https://github.com/threeDart/three.dart.git
+  vector_math: any

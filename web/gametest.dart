@@ -13,6 +13,7 @@ Scene scene;
 
 List bricks = [];
 Ball ball;
+Paddle paddle;
 
 const int windowHeight = 480;
 const int windowWidth = 320;
@@ -29,6 +30,17 @@ const double screenHeight = screenTop - screenBottom;
 
 const int bricksPerRow = 5;
 const int brickRows = 5;
+
+KeyboardEvent currentKeyDown = null;
+
+// Storing current key
+void onKeyDown(KeyboardEvent keyEvent){
+  currentKeyDown = keyEvent;
+}
+
+void onKeyUp(KeyboardEvent keyEvent){
+  currentKeyDown = null;
+}
 
 
 class Brick {
@@ -116,6 +128,74 @@ class Ball {
 }
 
 
+class Paddle {
+
+  double x = 0.0;
+  static double y = 0.0;
+
+  static const double width = screenWidth / 3;
+  static const double height = width / 9;
+  
+  double ax = 0.0;
+  
+  static Geometry geometry = new CubeGeometry( width, height, height );
+  static Material material = new MeshNormalMaterial();
+  Mesh mesh;
+
+
+  Paddle(){ 
+    this.mesh = new Mesh(geometry, material);
+    this.mesh.position.x = this.x;
+    this.mesh.position.y = Paddle.y;
+  }
+  
+  void handleCurrentKey(KeyboardEvent keyEvent){
+    // Left
+    if(keyEvent.keyCode == 37){
+      print('going left');
+      ax = -0.03;
+    }
+    // Right
+    else if(keyEvent.keyCode == 39){
+      print('going right');      
+      ax = 0.03;
+    }
+    else {
+      print(keyEvent.keyCode);
+    }
+  }
+  
+  void update(){
+    // Handle input
+    if(currentKeyDown != null){
+      handleCurrentKey(currentKeyDown);
+    }
+    
+    this.x += this.ax;
+    
+    // Screen limits
+    if (x < (screenLeft + width/2)){
+      this.x = screenLeft + width/2;
+    }
+    
+    if (x > (screenRight - width/2)){
+      this.x = screenRight - width/2;
+    }
+
+    // Decceleration
+    this.ax *= 0.8;
+
+    _render();
+  }
+  
+  void _render(){
+    this.mesh.position.x = this.x;
+  }
+}
+
+
+
+
 void init() {
   
   // Initialisation
@@ -164,8 +244,15 @@ void init() {
   
   ball = new Ball();
   scene.add( ball.mesh );
+  
+  paddle = new Paddle();
+  scene.add( paddle.mesh );
+  
+  
+  // Listen for user inputs  
+  window.onKeyDown.listen(onKeyDown);  
+  window.onKeyUp.listen(onKeyUp);
 }
-
 
 void handleCollisions() {
   // Ball with screen borders
@@ -206,7 +293,7 @@ void handleCollisions() {
         if (normal.y < 0) {
           angle += 0.5;
         }
-                
+                        
         brick.destroy();
         ball.bounce(angle);
         break;
@@ -221,6 +308,7 @@ void update(GameLoopHtml gameLoop) {
   handleCollisions();
   
   ball.update();
+  paddle.update();
 }
 
 
